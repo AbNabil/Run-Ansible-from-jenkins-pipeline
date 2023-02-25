@@ -1,0 +1,56 @@
+---
+- name: Wai for ssh connection
+  hosts: aws_ec2 
+  gather_facts: False
+  tasks: 
+    - name: Ensure ssh port open
+      wait_for: 
+        port: 22
+        delay: 10
+        timout: 100
+
+
+- name: Install Python3 and Docker
+  hosts: aws_ec2
+  become: yes
+  tasks:
+    - name: Install Python3 and Docker
+      yum:
+        name: 
+          - python3
+          - docker
+        update_cache: yes
+        state: present
+
+- name: Install docker-compose
+  hosts: aws_ec2
+  become: yes
+  tasks: 
+    - name: Install docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+
+- name: start Docker
+  hosts: aws_ec2
+  become: yes
+  tasks:
+    - name: start docker daemon
+      systemd:
+        name: docker
+        state: started
+    - name: Install Docker python module
+      pip:  
+        name: docker
+
+- name: add user to docker group
+  hosts: aws_ec2
+  become: yes
+  tasks:
+    - name: add ec2-user to docker group
+      user: 
+        name: ec2-user
+        groups: docker
+        append: yes
+        
